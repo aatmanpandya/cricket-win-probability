@@ -1,0 +1,19 @@
+{
+  "params": {
+    "num_leaves": 3,
+    "min_child_samples": 300,
+    "lambda_l2": 200.0,
+    "feature_fraction": 0.8,
+    "extra_trees": false,
+    "learning_rate": 0.03
+  },
+  "n_iter": {
+    "1": 358,
+    "2": 477
+  },
+  "trial": 1,
+  "backtest_ll": {
+    "1": 0.6176993558946995,
+    "2": 0.4308619547233341
+  }
+}

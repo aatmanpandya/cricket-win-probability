@@ -1,0 +1,213 @@
+loaded 295,732 delivery rows, 1243 matches
+result cross-check mismatches (included matches): 0
+
+Exclusions (all seasons):
+exclusion_reason
+INCLUDED              1182
+duckworth_lewis         23
+tie_super_over          16
+reduced_overs           11
+no_result                8
+truncated_innings1       3
+
+included matches: 1182, legal deliveries (innings 1-2): 273,644
+season    2008   2009   2010   2011   2012   2013   2014   2015   2016   2017   2018   2019   2020   2021   2022   2023   2024   2025   2026
+matches     53     53     58     68     73     73     57     52     56     57     57     57     56     59     74     71     70     68     70
+rows     12044  12352  13456  15642  17069  17037  13243  12123  12936  12998  13303  13307  13047  13636  17138  16595  16107  15569  16042
+[05:17:26] baselines: naive / elo-only / LR / GBM (first attempt) / GBM (regularised)
+fold                                 2021    2022    2023    2024     all
+model                                                                    
+GBM v0 (all features, 400 trees)   0.6887  0.6470  0.7484  0.8849  0.7428
+GBM v1 (regularised, state feats)  0.5334  0.5264  0.5903  0.4937  0.5363
+logistic regression                0.5350  0.5223  0.5922  0.4953  0.5364
+naive prior                        0.6786  0.6985  0.7046  0.6948  0.6949
+pre-match Elo only                 0.6763  0.7084  0.7039  0.7040  0.6992
+                               model fold      n  log_loss   brier     auc     ece
+4                        naive prior  all  63476    0.6949  0.2509  0.4945  0.0301
+4                 pre-match Elo only  all  63476    0.6992  0.2530  0.4857  0.0803
+4                logistic regression  all  63476    0.5364  0.1822  0.7990  0.0143
+4   GBM v0 (all features, 400 trees)  all  63476    0.7428  0.2449  0.7083  0.1579
+4  GBM v1 (regularised, state feats)  all  63476    0.5363  0.1825  0.7985  0.0150
+[05:17:46] feature-group ablation (GBM, fixed 400 trees, +group vs base)
+[05:17:56]   form
+[05:18:00]   relative_to_league
+[05:18:04]   venue
+[05:18:10]   league_avg_l40
+[05:18:14]   toss
+[05:18:18]   elo_diff
+[05:18:24]   impact_era_flag
+                 group  innings  mean_delta  folds_better  n_folds  accept
+0                 form        1     -0.0006             2        4   False
+1                 form        2     -0.0003             2        4   False
+2   relative_to_league        1     -0.0003             2        4   False
+3   relative_to_league        2     -0.0008             3        4   False
+4                venue        1     -0.0027             3        4    True
+5                venue        2     -0.0026             3        4    True
+6       league_avg_l40        1      0.0059             2        4   False
+7       league_avg_l40        2      0.0024             3        4   False
+8                 toss        1      0.0002             1        4   False
+9                 toss        2      0.0009             1        4   False
+10            elo_diff        1     -0.0016             2        4   False
+11            elo_diff        2      0.0050             0        4   False
+12     impact_era_flag        1      0.0023             0        4   False
+13     impact_era_flag        2      0.0011             0        4   False
+[05:18:24] structure: separate vs joint, monotone, init-from-LR, bagging
+[05:18:28]   separate (state+venue): {'inn1': np.float64(0.6218249778538174), 'inn2': np.float64(0.4398694142131196), 'overall': np.float64(0.5337825180003233)}
+[05:18:33]   separate + monotone: {'inn1': np.float64(0.6224299261009638), 'inn2': np.float64(0.4396421930652665), 'overall': np.float64(0.5339848061744025)}
+[05:18:38]   separate, boost from LR: {'inn1': np.float64(0.6215930827934143), 'inn2': np.float64(0.43173455978083475), 'overall': np.float64(0.5297266344379986)}
+[05:18:45]   separate, boost from LR + monotone: {'inn1': np.float64(0.6223266758285283), 'inn2': np.float64(0.43344656672451715), 'overall': np.float64(0.5309336505745647)}
+[05:18:49]   joint (innings flag): {'inn1': np.float64(0.6293494317151905), 'inn2': np.float64(0.45335515526471665), 'overall': np.float64(0.544191447486508)}
+[05:19:09]   separate, 5 match-bagged: {'inn1': np.float64(0.6222875893047941), 'inn2': np.float64(0.4385690953010218), 'overall': np.float64(0.5333921040059116)}
+                                      inn1    inn2  overall  fold_2021  fold_2022  fold_2023  fold_2024
+joint (innings flag)                0.6293  0.4534   0.5442     0.5350     0.5412     0.5986     0.4991
+separate (state+venue)              0.6218  0.4399   0.5338     0.5287     0.5244     0.5888     0.4914
+separate + monotone                 0.6224  0.4396   0.5340     0.5281     0.5230     0.5895     0.4935
+separate, 5 match-bagged            0.6223  0.4386   0.5334     0.5265     0.5231     0.5913     0.4906
+separate, boost from LR             0.6216  0.4317   0.5297     0.5274     0.5189     0.5851     0.4861
+separate, boost from LR + monotone  0.6223  0.4334   0.5309     0.5262     0.5172     0.5895     0.4892
+[05:19:09] era: Impact Player (2023+) shift -- flag, recency weighting, shorter history
+[05:19:14]   baseline (all history, uniform): {'inn1': np.float64(0.6218249778538174), 'inn2': np.float64(0.4398694142131196), 'overall': np.float64(0.5337825180003233)}
+[05:19:18]   + impact_era flag: {'inn1': np.float64(0.6233798768021029), 'inn2': np.float64(0.4419270266815185), 'overall': np.float64(0.5355806638932298)}
+[05:19:23]   recency half-life 4 seasons: {'inn1': np.float64(0.6260313714959935), 'inn2': np.float64(0.4453064973205172), 'overall': np.float64(0.5385844027924587)}
+[05:19:27]   recency half-life 2 seasons: {'inn1': np.float64(0.6317316636952911), 'inn2': np.float64(0.4502609832001186), 'overall': np.float64(0.5439238232401784)}
+[05:19:32]   recency half-life 1 season: {'inn1': np.float64(0.6416176769677303), 'inn2': np.float64(0.45769849066926976), 'overall': np.float64(0.5526250831059414)}
+[05:19:34]   train only from 2016: {'inn1': np.float64(0.6338268002293777), 'inn2': np.float64(0.4532607838642033), 'overall': np.float64(0.5464566977238643)}
+[05:19:37]   train only from 2018: {'inn1': np.float64(0.6396214380589498), 'inn2': np.float64(0.4541443535591598), 'overall': np.float64(0.5498750272371188)}
+                                   inn1    inn2  overall  fold_2021  fold_2022  fold_2023  fold_2024
++ impact_era flag                0.6234  0.4419   0.5356     0.5287     0.5244     0.5888     0.4985
+baseline (all history, uniform)  0.6218  0.4399   0.5338     0.5287     0.5244     0.5888     0.4914
+recency half-life 1 season       0.6416  0.4577   0.5526     0.5353     0.5366     0.6304     0.5042
+recency half-life 2 seasons      0.6317  0.4503   0.5439     0.5305     0.5350     0.6079     0.4988
+recency half-life 4 seasons      0.6260  0.4453   0.5386     0.5280     0.5288     0.5975     0.4972
+train only from 2016             0.6338  0.4533   0.5465     0.5320     0.5536     0.5967     0.4993
+train only from 2018             0.6396  0.4541   0.5499     0.5430     0.5580     0.5966     0.4989
+                       matches  ...  bat_first_choice
+era                             ...                  
+2008-17                    600  ...             0.430
+2018-22                    303  ...             0.248
+2023+ (Impact Player)      279  ...             0.229
+
+[3 rows x 5 columns]
+[05:19:37] hyper-parameter random search (14 trials, curves over 4 backtest folds)
+[05:19:45]   trial 0: inn1 0.6212@675, inn2 0.4314@572
+[05:19:53]   trial 1: inn1 0.6177@358, inn2 0.4309@477
+[05:20:05]   trial 2: inn1 0.6204@211, inn2 0.4313@147
+[05:20:16]   trial 3: inn1 0.6193@50, inn2 0.4352@59
+[05:20:29]   trial 4: inn1 0.6215@195, inn2 0.4339@218
+[05:20:41]   trial 5: inn1 0.6200@120, inn2 0.4337@245
+[05:20:50]   trial 6: inn1 0.6215@365, inn2 0.4323@345
+[05:21:06]   trial 7: inn1 0.6218@14, inn2 0.4359@26
+[05:21:13]   trial 8: inn1 0.6168@281, inn2 0.4333@306
+[05:21:28]   trial 9: inn1 0.6177@100, inn2 0.4347@97
+[05:21:39]   trial 10: inn1 0.6219@108, inn2 0.4360@88
+[05:21:52]   trial 11: inn1 0.6212@334, inn2 0.4322@376
+[05:22:03]   trial 12: inn1 0.6219@377, inn2 0.4336@573
+[05:22:19]   trial 13: inn1 0.6189@32, inn2 0.4337@31
+[05:22:34]   trial 14: inn1 0.6209@305, inn2 0.4326@460
+    trial  num_leaves  min_child_samples  lambda_l2  feature_fraction  extra_trees  learning_rate  inn1_best_iter  inn1_best_ll  inn2_best_iter  inn2_best_ll  combined_ll
+1       1           3                300      200.0               0.8        False           0.03             358        0.6177             477        0.4309       0.5273
+8       8           3                600       10.0               0.8        False           0.03             281        0.6168             306        0.4333       0.5280
+2       2           8                300       10.0               0.6         True           0.05             211        0.6204             147        0.4313       0.5289
+9       9          12                600      200.0               0.8        False           0.02             100        0.6177              97        0.4347       0.5291
+13     13          12               2000        1.0               0.6        False           0.05              32        0.6189              31        0.4337       0.5293
+0       0           4               1000        NaN               NaN         True           0.03             675        0.6212             572        0.4314       0.5293
+11     11           8               1000       50.0               0.6         True           0.02             334        0.6212             376        0.4322       0.5297
+14     14          12                600       50.0               0.6         True           0.02             305        0.6209             460        0.4326       0.5298
+5       5           6               2000      200.0               0.6        False           0.02             120        0.6200             245        0.4337       0.5298
+6       6           4               2000        1.0               1.0         True           0.03             365        0.6215             345        0.4323       0.5299
+3       3           6                300       50.0               0.6        False           0.05              50        0.6193              59        0.4352       0.5302
+4       4          12               2000      200.0               0.8         True           0.03             195        0.6215             218        0.4339       0.5307
+12     12          12               4000       10.0               0.8         True           0.02             377        0.6219             573        0.4336       0.5308
+7       7          12               4000      200.0               0.8        False           0.05              14        0.6218              26        0.4359       0.5318
+10     10           6               4000      200.0               1.0        False           0.02             108        0.6219              88        0.4360       0.5320
+{
+  "params": {
+    "num_leaves": 3,
+    "min_child_samples": 300,
+    "lambda_l2": 200.0,
+    "feature_fraction": 0.8,
+    "extra_trees": false,
+    "learning_rate": 0.03
+  },
+  "n_iter": {
+    "1": 358,
+    "2": 477
+  },
+  "trial": 1,
+  "backtest_ll": {
+    "1": 0.6176993558946995,
+    "2": 0.4308619547233341
+  }
+}
+[05:22:34] monotone constraints: do they help calibration / stability? (backtest folds 2021-24)
+                      log_loss    brier      ece  roughness  viol_extra_wicket  viol_more_runs_inn2
+model                                                                                              
+GBM (monotone)         0.52790  0.17877  0.04069    0.01526                0.0              0.00000
+GBM (no constraints)   0.52713  0.17849  0.04245    0.01519                0.0              0.00066
+LR baseline            0.53620  0.18209  0.04459    0.01425                0.0              0.00000
+[05:22:45] calibration: nested backtest (model on <y-1, calibrator on y-1, scored on y)
+fold        2022    2023    2024     all
+variant                                 
+isotonic  0.0463  0.1033  0.0624  0.0300
+platt     0.0556  0.0996  0.0731  0.0251
+raw       0.0507  0.0567  0.0347  0.0177
+fold        2022    2023    2024     all
+variant                                 
+isotonic  0.5273  0.7060  0.5216  0.5850
+platt     0.5240  0.6277  0.5076  0.5532
+raw       0.5157  0.5859  0.4896  0.5307
+                   matches  deliveries
+train (<=2023)         974      225926
+validation (2024)       70       16107
+test (2025-26)         138       31611
+test 2025               68       15569
+test 2026               70       16042
+                                    n  log_loss   brier     auc     ece
+model                                                                  
+naive prior                     31611    0.6863  0.2466  0.5693  0.0388
+pre-match Elo only              31611    0.6874  0.2471  0.5723  0.0526
+logistic regression             31611    0.5405  0.1850  0.7974  0.0433
+GBM                             31611    0.5463  0.1867  0.7979  0.0557
+GBM (monotone)                  31611    0.5485  0.1874  0.7981  0.0627
+GBM + Platt                     31611    0.5303  0.1794  0.8147  0.0569
+GBM + isotonic                  31611    0.5595  0.1851  0.8023  0.0705
+GBM (monotone) + Platt          31611    0.5305  0.1797  0.8140  0.0571
+GBM (monotone) + isotonic       31611    0.5592  0.1854  0.8016  0.0857
+logistic regression + Platt     31611    0.5193  0.1753  0.8203  0.0459
+logistic regression + isotonic  31611    0.5350  0.1775  0.8155  0.0509
+                                             model      n  log_loss   brier     auc     ece
+0                logistic regression  [frozen run]  31611    0.5405  0.1850  0.7974  0.0433
+1                                GBM  [frozen run]  31611    0.5463  0.1867  0.7979  0.0557
+2                        GBM + Platt  [frozen run]  31611    0.5303  0.1794  0.8147  0.0569
+3        logistic regression + Platt  [frozen run]  31611    0.5193  0.1753  0.8203  0.0459
+4                              LR (relative feats)  31611    0.5241  0.1779  0.8263  0.0808
+5                      LR (relative feats) + Platt  31611    0.5137  0.1733  0.8250  0.0489
+6          GBM (relative feats, boost from rel-LR)  31611    0.5323  0.1812  0.8184  0.0810
+7  GBM (relative feats, boost from rel-LR) + Platt  31611    0.5219  0.1767  0.8190  0.0532
+season                                            2025          2026       
+innings                                              1      2      1      2
+actual                                           0.488  0.487  0.359  0.633
+LR (relative feats)                              0.567  0.535  0.578  0.586
+LR (relative feats) + Platt                      0.533  0.503  0.547  0.562
+GBM (relative feats, boost from rel-LR)          0.573  0.539  0.586  0.580
+GBM (relative feats, boost from rel-LR) + Platt  0.537  0.510  0.554  0.558
+fold                 2021    2022    2023    2024     all
+model                                                    
+LR                 0.5350  0.5223  0.5922  0.4953  0.5364
+LR relative feats  0.5352  0.5299  0.5898  0.4932  0.5374
+replay data: 138 matches
+comeback 1473468 [Timestamp('2025-04-15 00:00:00'), 'Punjab Kings', 'Kolkata Knight Riders']
+biggest_swing 1527688 [Timestamp('2026-04-09 00:00:00'), 'Kolkata Knight Riders', 'Lucknow Super Giants']
+seesaw 1529301 [Timestamp('2026-05-14 00:00:00'), 'Punjab Kings', 'Mumbai Indians']
+saved reliability
+saved logloss_by_ball
+saved phase_logloss
+saved era_shift
+saved backtest_logloss
+demo/index.html written: 0.92 MB, 138 matches
+wrote /Users/aatmanpandya/Desktop/portfolio-projects/cricket-win-probability/notebooks/evaluation.ipynb
+[NbConvertApp] Converting notebook notebooks/evaluation.ipynb to notebook
+[IPKernelApp] WARNING | Kernel is running over TCP without encryption. All communication (including code and outputs) is sent in plain text and is susceptible to eavesdropping. Use IPC transport or launch with kernel manager-provisioned CurveZMQ keys to enable transport encryption.
+[NbConvertApp] Writing 1388077 bytes to notebooks/evaluation.ipynb
+EXIT 0
+FINISHED

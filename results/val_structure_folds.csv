@@ -1,0 +1,49 @@
+fold,innings,n,log_loss,variant
+2021,1,7072,0.6150660985488181,separate (state+venue)
+2021,2,6564,0.43556180105209585,separate (state+venue)
+2022,1,8816,0.6062878746442909,separate (state+venue)
+2022,2,8322,0.4376094450846581,separate (state+venue)
+2023,1,8505,0.6704443920557168,separate (state+venue)
+2023,2,8090,0.5029957434474336,separate (state+venue)
+2024,1,8369,0.5944938485137509,separate (state+venue)
+2024,2,7738,0.3799560816168952,separate (state+venue)
+2021,1,7072,0.6152695936881113,separate + monotone
+2021,2,6564,0.43419079472655725,separate + monotone
+2022,1,8816,0.6046799269097328,separate + monotone
+2022,2,8322,0.4364549437444252,separate + monotone
+2023,1,8505,0.6722052320373327,separate + monotone
+2023,2,8090,0.5024637638566967,separate + monotone
+2024,1,8369,0.5965944483503087,separate + monotone
+2024,2,7738,0.38201499738688177,separate + monotone
+2021,1,7072,0.617571189176735,"separate, boost from LR"
+2021,2,6564,0.4302620608004497,"separate, boost from LR"
+2022,1,8816,0.6071272247601732,"separate, boost from LR"
+2022,2,8322,0.42549968387332127,"separate, boost from LR"
+2023,1,8505,0.6698842149309688,"separate, boost from LR"
+2023,2,8090,0.4959456810469303,"separate, boost from LR"
+2024,1,8369,0.5911542916891371,"separate, boost from LR"
+2024,2,7738,0.37255701384737167,"separate, boost from LR"
+2021,1,7072,0.6141667119988368,"separate, boost from LR + monotone"
+2021,2,6564,0.4313838615985576,"separate, boost from LR + monotone"
+2022,1,8816,0.6034188707841722,"separate, boost from LR + monotone"
+2022,2,8322,0.4259460588909937,"separate, boost from LR + monotone"
+2023,1,8505,0.673724363163998,"separate, boost from LR + monotone"
+2023,2,8090,0.5009331298395201,"separate, boost from LR + monotone"
+2024,1,8369,0.5969068099767479,"separate, boost from LR + monotone"
+2024,2,7738,0.3727063918779169,"separate, boost from LR + monotone"
+2021,1,7072,0.6166348708316222,joint (innings flag)
+2021,2,6564,0.447143154409914,joint (innings flag)
+2022,1,8816,0.6249453152112727,joint (innings flag)
+2022,2,8322,0.4524504569003357,joint (innings flag)
+2023,1,8505,0.6665941112915821,joint (innings flag)
+2023,2,8090,0.527059911393821,joint (innings flag)
+2024,1,8369,0.6068829561350643,joint (innings flag)
+2024,2,7738,0.38254008629532527,joint (innings flag)
+2021,1,7072,0.6163573454870489,"separate, 5 match-bagged"
+2021,2,6564,0.42976228356339363,"separate, 5 match-bagged"
+2022,1,8816,0.6048502137349359,"separate, 5 match-bagged"
+2022,2,8322,0.4364402025741675,"separate, 5 match-bagged"
+2023,1,8505,0.6736648717253869,"separate, 5 match-bagged"
+2023,2,8090,0.5046345768797769,"separate, 5 match-bagged"
+2024,1,8369,0.5934553274235449,"separate, 5 match-bagged"
+2024,2,7738,0.3792585255861787,"separate, 5 match-bagged"

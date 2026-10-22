@@ -1,0 +1,17 @@
+# private interview prep -- never commit
+INTERVIEW_NOTES.md
+
+# raw + processed data (re-downloadable / rebuildable)
+data/
+
+# environments / caches
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+
+# large model artefacts
+models/*.txt
+*.pkl
+*.joblib

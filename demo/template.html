@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IPL Win Probability Replay</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f6f5f1; --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #7c7b76;
+    --grid: #dddcd6; --t1: #2a78d6; --t2: #eb6834; --wkt: #e34948; --six: #1baf7a; --line: #0b0b0b;
+    --border: #e2e1db; --accent-bg: #eef3fb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --bg: #121211; --surface: #1a1a19; --ink: #f0efec; --ink2: #c3c2b7; --muted: #8f8e86;
+      --grid: #343431; --t1: #3987e5; --t2: #d95926; --wkt: #e66767; --six: #199e70; --line: #f0efec;
+      --border: #2e2e2b; --accent-bg: #1f2530;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #121211; --surface: #1a1a19; --ink: #f0efec; --ink2: #c3c2b7; --muted: #8f8e86;
+    --grid: #343431; --t1: #3987e5; --t2: #d95926; --wkt: #e66767; --six: #199e70; --line: #f0efec;
+    --border: #2e2e2b; --accent-bg: #1f2530;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 22px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--ink2); margin: 0 0 18px; font-size: 14px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin-bottom: 14px; }
+  select, button { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; }
+  select { min-width: 260px; max-width: 100%; }
+  button { cursor: pointer; }
+  button:hover { border-color: var(--ink2); }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 2px solid var(--t1); outline-offset: 2px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+  .matchhead { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; }
+  .teams { font-size: 19px; font-weight: 650; }
+  .teams .s { font-weight: 500; color: var(--ink2); font-size: 15px; margin-left: 6px; }
+  .dot { display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:6px; vertical-align:baseline; }
+  .result { font-weight: 600; }
+  .meta { color: var(--ink2); font-size: 13px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--ink2); margin: 4px 0 8px; }
+  .legend label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+  #chart { width: 100%; height: auto; display: block; touch-action: pan-y; }
+  .tip { position: absolute; pointer-events: none; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px; box-shadow: 0 4px 16px rgba(0,0,0,.12); max-width: 300px; opacity: 0; transition: opacity .08s; z-index: 5; }
+  .chartbox { position: relative; }
+  .play { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+  .play input[type=range] { flex: 1; accent-color: var(--t1); }
+  ol.tps { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 8px; }
+  ol.tps li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: start; padding: 8px 10px; border-radius: 8px; background: var(--accent-bg); }
+  .badge { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--ink); display: grid; place-items: center; font-size: 12px; font-weight: 700; }
+  .tps .ev { font-weight: 600; }
+  .tps .gain { color: var(--ink2); font-size: 13px; }
+  h2 { font-size: 15px; margin: 0 0 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th, td { text-align: right; padding: 4px 8px; border-bottom: 1px solid var(--border); }
+  th:first-child, td:first-child { text-align: left; }
+  .tablewrap { max-height: 320px; overflow: auto; }
+  .note { color: var(--muted); font-size: 12.5px; margin-top: 14px; }
+  .note a { color: var(--ink2); }
+  .axis text { fill: var(--muted); font-size: 11px; }
+  .lbl { fill: var(--ink2); font-size: 12px; }
+  .themebtn { margin-left: auto; }
+  @media (max-width: 560px) { select { min-width: 0; width: 100%; } .teams { font-size: 17px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="controls">
+    <h1 style="margin:0">IPL win-probability replay</h1>
+    <button class="themebtn" id="theme" aria-label="Toggle dark mode">Theme</button>
+  </div>
+  <p class="sub">Ball-by-ball chance of winning for every IPL match in the held-out 2025 and 2026 seasons. The model was fitted on matches up to 2023 only and recalibrated on 2024, so it has never seen these games.</p>
+  <div class="controls">
+    <label for="match"><strong>Match</strong></label>
+    <select id="match" aria-label="Choose a match"></select>
+    <button id="prev" aria-label="Previous match">&larr; Prev</button>
+    <button id="next" aria-label="Next match">Next &rarr;</button>
+  </div>
+
+  <div class="card">
+    <div class="matchhead">
+      <div>
+        <div class="teams" id="teams"></div>
+        <div class="result" id="result"></div>
+      </div>
+      <div class="meta" id="meta" style="text-align:right"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="legend" id="legend">
+      <span><span class="dot" style="background:var(--t1)"></span><span id="l1"></span> win probability above 50%</span>
+      <span><span class="dot" style="background:var(--t2)"></span><span id="l2"></span> win probability below 50%</span>
+      <label><input type="checkbox" id="cw" checked> <svg width="12" height="12"><circle cx="6" cy="6" r="5" fill="var(--wkt)"/></svg> Wickets</label>
+      <label><input type="checkbox" id="c6" checked> <svg width="12" height="12"><rect x="2" y="2" width="8" height="8" fill="var(--six)" transform="rotate(45 6 6)"/></svg> Sixes</label>
+      <label><input type="checkbox" id="c4"> <svg width="12" height="12"><circle cx="6" cy="6" r="3" fill="var(--ink2)"/></svg> Fours</label>
+      <label><input type="checkbox" id="ctp" checked> <svg width="14" height="14"><circle cx="7" cy="7" r="6" fill="none" stroke="var(--ink)" stroke-width="1.5"/></svg> Turning points</label>
+    </div>
+    <div class="chartbox" id="chartbox">
+      <svg id="chart" viewBox="0 0 960 420" role="img" aria-label="Win probability over the match"></svg>
+      <div class="tip" id="tip"></div>
+    </div>
+    <div class="play">
+      <button id="play" aria-label="Play replay">&#9654; Replay</button>
+      <input type="range" id="scrub" min="0" max="240" value="240" aria-label="Replay position">
+      <span class="meta" id="pos" style="min-width:150px;text-align:right"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Turning points</h2>
+    <ol class="tps" id="tps"></ol>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary><strong>Over-by-over table</strong> (data view of the chart)</summary>
+      <div class="tablewrap" style="margin-top:8px"><table id="tbl"></table></div>
+    </details>
+  </div>
+
+  <p class="note">Probability shown is for the team that batted first. Innings 1 uses a model that knows only the score, wickets, balls left and the ground's historical scoring; innings 2 adds the target and required run rate. At the innings break the two models hand over, so the small step there is a model artefact, not a cricket event (mean size on the test seasons: __GAP__ points). Data: <a href="https://cricsheet.org/">Cricsheet</a> (Open Database License). Not affiliated with the IPL, JioStar or any broadcaster.</p>
+</div>
+
+<script>
+const DATA = __DATA__;
+const $ = id => document.getElementById(id);
+const NS = "http://www.w3.org/2000/svg";
+const W = 960, H = 420, M = {l: 92, r: 18, t: 34, b: 34};
+let cur = null, upto = 0, timer = null;
+
+function el(name, attrs, parent) {
+  const e = document.createElementNS(NS, name);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+// ---- populate dropdown, grouped by season
+(function init() {
+  const sel = $("match");
+  const bySeason = {};
+  DATA.forEach((m, i) => (bySeason[m.season] = bySeason[m.season] || []).push([m, i]));
+  Object.keys(bySeason).sort().forEach(s => {
+    const og = document.createElement("optgroup");
+    og.label = "Season " + s;
+    bySeason[s].forEach(([m, i]) => {
+      const o = document.createElement("option");
+      o.value = i;
+      o.textContent = `${m.date}  ${m.t1} v ${m.t2}  (${m.result})`;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+  // start on a dramatic match: the one with the biggest comeback = first in the list with a big swing
+  let best = 0, bv = -1;
+  DATA.forEach((m, i) => { const v = Math.max(0, ...m.tp.map(t => Math.abs(t.swing))); if (v > bv && v < 0.99) { bv = v; best = i; } });
+  sel.value = best;
+  sel.addEventListener("change", () => load(+sel.value));
+  $("prev").onclick = () => step(-1);
+  $("next").onclick = () => step(1);
+  ["cw", "c6", "c4", "ctp"].forEach(id => $(id).addEventListener("change", draw));
+  $("play").onclick = togglePlay;
+  $("scrub").addEventListener("input", e => { stop(); upto = +e.target.value; draw(); });
+  $("theme").onclick = () => {
+    const r = document.documentElement, dark = getComputedStyle(r).colorScheme === "dark";
+    r.setAttribute("data-theme", dark ? "light" : "dark");
+    draw();
+  };
+  load(best);
+})();
+
+function step(d) {
+  const i = Math.min(DATA.length - 1, Math.max(0, +$("match").value + d));
+  $("match").value = i; load(i);
+}
+
+function load(i) {
+  stop();
+  cur = DATA[i];
+  cur.cumR = []; cur.cumW = [];  // score after ball j (within its innings)
+  let r = 0, w = 0;
+  for (let j = 0; j < cur.r.length; j++) {
+    if (j === cur.n1) { r = 0; w = 0; }
+    r += cur.r[j]; w += cur.w[j];
+    cur.cumR.push(r); cur.cumW.push(w);
+  }
+  upto = cur.p.length - 1;
+  $("scrub").max = upto; $("scrub").value = upto;
+  $("teams").innerHTML = `<span class="dot" style="background:var(--t1)"></span>${cur.t1}<span class="s">${cur.s1}</span> &nbsp;v&nbsp; <span class="dot" style="background:var(--t2)"></span>${cur.t2}<span class="s">${cur.s2}</span>`;
+  $("result").textContent = cur.result;
+  $("meta").innerHTML = `${cur.date} &middot; ${cur.venue}<br>${cur.toss}`;
+  $("l1").textContent = cur.t1; $("l2").textContent = cur.t2;
+  const ol = $("tps"); ol.innerHTML = "";
+  cur.tp.forEach((t, n) => {
+    const li = document.createElement("li");
+    const loser = t.swing > 0 ? cur.t2 : cur.t1;
+    li.innerHTML = `<span class="badge">${n + 1}</span><div><div class="ev">${esc(t.text)}</div><div class="gain">${t.ball} &middot; ${t.gain} (win probability ${pct(cur.p[t.i])} &rarr; ${pct(cur.p[t.i + 1])} for ${cur.t1})</div></div>`;
+    ol.appendChild(li);
+  });
+  if (!cur.tp.length) ol.innerHTML = "<li><span></span><div>No single ball moved the win probability by 4 points or more.</div></li>";
+  buildTable();
+  draw();
+}
+function esc(s) { return s.replace(/[&<>]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;"}[c])); }
+function pct(v) { return (v / 10).toFixed(0) + "%"; }
+
+function buildTable() {
+  const rows = [];
+  const n1 = cur.n1, n = cur.p.length - 1;
+  const hdr = `<tr><th>Over</th><th>Score</th><th>${cur.t1} win %</th><th>Runs</th><th>Wkts</th></tr>`;
+  const body = [];
+  [[0, n1, 1], [n1, n, 2]].forEach(([a, b, inn]) => {
+    body.push(`<tr><td colspan="5" style="text-align:left;font-weight:600;padding-top:10px">Innings ${inn}: ${inn === 1 ? cur.t1 : cur.t2} batting</td></tr>`);
+    for (let j = a + 6; j <= b + 5; j += 6) {
+      const k = Math.min(j, b);               // point index = state after (k-a) balls
+      const idx = k - 1;                       // ball index just bowled
+      const ov = Math.ceil((k - a) / 6);
+      const runsInOver = cur.r.slice(Math.max(a, k - 6), k).reduce((x, y) => x + y, 0);
+      const wk = cur.w.slice(Math.max(a, k - 6), k).reduce((x, y) => x + y, 0);
+      body.push(`<tr><td>${ov}</td><td>${cur.cumR[idx]}/${cur.cumW[idx]}</td><td>${pct(cur.p[k])}</td><td>${runsInOver}</td><td>${wk}</td></tr>`);
+      if (k === b) break;
+    }
+  });
+  $("tbl").innerHTML = hdr + body.join("");
+}
+
+// ---- chart
+function draw() {
+  if (!cur) return;
+  const svg = $("chart"); svg.innerHTML = "";
+  const n = cur.p.length - 1, n1 = cur.n1;
+  const X = j => M.l + (j / n) * (W - M.l - M.r);
+  const Y = p => M.t + (1 - p / 1000) * (H - M.t - M.b);
+  const css = getComputedStyle(document.documentElement);
+  const gridG = el("g", {class: "axis"}, svg);
+  [0, 250, 500, 750, 1000].forEach(v => {
+    el("line", {x1: M.l, x2: W - M.r, y1: Y(v), y2: Y(v), stroke: v === 500 ? css.getPropertyValue("--muted") : css.getPropertyValue("--grid"), "stroke-width": v === 500 ? 1.2 : 1, "stroke-dasharray": v === 500 ? "" : "2 4"}, gridG);
+    const t = el("text", {x: M.l - 8, y: Y(v) + 4, "text-anchor": "end"}, gridG);
+    t.textContent = v === 1000 ? cur.t1 + " 100%" : v === 0 ? cur.t2 + " 100%" : (v / 10) + "%";
+  });
+  // clip to the replay position
+  const cid = "clip" + Math.random().toString(36).slice(2, 7);
+  const defs = el("defs", {}, svg);
+  const cp = el("clipPath", {id: cid}, defs);
+  el("rect", {x: 0, y: 0, width: X(upto), height: H}, cp);
+  const g = el("g", {"clip-path": `url(#${cid})`}, svg);
+  // area: split at 50% using two clipped copies
+  const pts = cur.p.map((p, j) => `${X(j).toFixed(1)},${Y(p).toFixed(1)}`);
+  const mid = Y(500);
+  const areaPath = `M${X(0)},${mid} L` + pts.join(" L") + ` L${X(n)},${mid} Z`;
+  const cT = el("clipPath", {id: cid + "t"}, defs); el("rect", {x: 0, y: 0, width: W, height: mid}, cT);
+  const cB = el("clipPath", {id: cid + "b"}, defs); el("rect", {x: 0, y: mid, width: W, height: H - mid}, cB);
+  el("path", {d: areaPath, fill: css.getPropertyValue("--t1"), "fill-opacity": .2, "clip-path": `url(#${cid}t)`}, g);
+  el("path", {d: areaPath, fill: css.getPropertyValue("--t2"), "fill-opacity": .2, "clip-path": `url(#${cid}b)`}, g);
+  // lines (innings 2 separate from innings 1; dotted hand-over)
+  const line = (a, b, dash) => el("polyline", {points: pts.slice(a, b + 1).join(" "), fill: "none", stroke: css.getPropertyValue("--line"), "stroke-width": 2, "stroke-linejoin": "round", "stroke-dasharray": dash || ""}, g);
+  line(0, n1 - 1); line(n1 - 1, n1, "2 3"); line(n1, n);
+  // innings divider + labels
+  const dv = el("line", {x1: X(n1), x2: X(n1), y1: M.t, y2: H - M.b, stroke: css.getPropertyValue("--muted"), "stroke-dasharray": "4 4"}, svg);
+  const lab = (x, s) => { const t = el("text", {x, y: 18, "text-anchor": "middle", class: "lbl"}, svg); t.textContent = s; };
+  lab((X(0) + X(n1)) / 2, `Innings 1: ${cur.t1} bat`);
+  lab((X(n1) + X(n)) / 2, `Innings 2: ${cur.t2} chase`);
+  // x ticks (overs)
+  const ax = el("g", {class: "axis"}, svg);
+  [[0, 0], [36, 6], [90, 15], [120, 20]].forEach(([b, ov]) => {
+    [0, n1].forEach(off => {
+      const j = off + b; if (j > n) return;
+      if (off === n1 && b === 0) return;
+      const t = el("text", {x: X(j), y: H - 12, "text-anchor": b === 0 && off === 0 ? "start" : "middle"}, ax); t.textContent = ov + (b === 120 ? " ov" : "");
+    });
+  });
+  // markers
+  const show = id => $(id).checked;
+  for (let j = 0; j < cur.r.length; j++) {
+    const pj = j + 1; if (pj > upto) break;
+    const ev = cur.ev[j];
+    if (cur.w[j] > 0 && show("cw")) el("circle", {cx: X(pj), cy: Y(cur.p[pj]), r: 4.5, fill: css.getPropertyValue("--wkt"), stroke: css.getPropertyValue("--surface"), "stroke-width": 1.5}, svg);
+    else if (ev && ev.startsWith("SIX") && show("c6")) el("rect", {x: X(pj) - 3.5, y: Y(cur.p[pj]) - 3.5, width: 7, height: 7, fill: css.getPropertyValue("--six"), stroke: css.getPropertyValue("--surface"), "stroke-width": 1.2, transform: `rotate(45 ${X(pj)} ${Y(cur.p[pj])})`}, svg);
+    else if (ev && ev.startsWith("FOUR") && show("c4")) el("circle", {cx: X(pj), cy: Y(cur.p[pj]), r: 2.5, fill: css.getPropertyValue("--ink2")}, svg);
+  }
+  if (show("ctp")) cur.tp.forEach((t, n) => {
+    const pj = t.i + 1; if (pj > upto) return;
+    el("circle", {cx: X(pj), cy: Y(cur.p[pj]), r: 11, fill: css.getPropertyValue("--surface"), stroke: css.getPropertyValue("--ink"), "stroke-width": 1.6}, svg);
+    const tx = el("text", {x: X(pj), y: Y(cur.p[pj]) + 4, "text-anchor": "middle", "font-weight": 700, "font-size": 12, fill: css.getPropertyValue("--ink")}, svg); tx.textContent = n + 1;
+  });
+  // crosshair + hit area
+  const cross = el("line", {y1: M.t, y2: H - M.b, stroke: css.getPropertyValue("--ink2"), "stroke-width": 1, opacity: 0}, svg);
+  const dot = el("circle", {r: 4, fill: css.getPropertyValue("--line"), opacity: 0}, svg);
+  const hit = el("rect", {x: M.l, y: M.t, width: W - M.l - M.r, height: H - M.t - M.b, fill: "transparent"}, svg);
+  const tip = $("tip");
+  const move = ev => {
+    const pt = svg.createSVGPoint(); const c = ev.touches ? ev.touches[0] : ev;
+    pt.x = c.clientX; pt.y = c.clientY;
+    const loc = pt.matrixTransform(svg.getScreenCTM().inverse());
+    let j = Math.round(((loc.x - M.l) / (W - M.l - M.r)) * n); j = Math.max(0, Math.min(upto, j));
+    cross.setAttribute("x1", X(j)); cross.setAttribute("x2", X(j)); cross.setAttribute("opacity", 1);
+    dot.setAttribute("cx", X(j)); dot.setAttribute("cy", Y(cur.p[j])); dot.setAttribute("opacity", 1);
+    tip.innerHTML = tipHtml(j); tip.style.opacity = 1;
+    const box = $("chartbox").getBoundingClientRect(), sx = box.width / W;
+    let left = X(j) * sx + 14; if (left > box.width - 250) left = X(j) * sx - 260;
+    tip.style.left = Math.max(0, left) + "px"; tip.style.top = Math.max(0, Y(cur.p[j]) * sx - 20) + "px";
+  };
+  const leave = () => { cross.setAttribute("opacity", 0); dot.setAttribute("opacity", 0); tip.style.opacity = 0; };
+  hit.addEventListener("mousemove", move); hit.addEventListener("mouseleave", leave);
+  hit.addEventListener("touchstart", move, {passive: true}); hit.addEventListener("touchmove", move, {passive: true}); hit.addEventListener("touchend", leave);
+  $("pos").textContent = upto === n ? "full match" : posLabel(upto);
+}
+
+function posLabel(j) {
+  if (j === 0) return "start";
+  const idx = j - 1, inn = idx < cur.n1 ? 1 : 2;
+  return `Inn ${inn}, over ${cur.ball[idx]}`;
+}
+
+function tipHtml(j) {
+  const p1 = cur.p[j], p2 = 1000 - p1;
+  const wins = `<span class="dot" style="background:var(--t1)"></span>${cur.t1} ${pct(p1)} &nbsp; <span class="dot" style="background:var(--t2)"></span>${cur.t2} ${pct(p2)}`;
+  if (j === 0) return `<strong>Start of match</strong><br>${wins}`;
+  if (j === cur.p.length - 1) return `<strong>Result</strong><br>${cur.result}`;
+  const idx = j - 1, inn = idx < cur.n1 ? 1 : 2;
+  const team = inn === 1 ? cur.t1 : cur.t2;
+  let s = `<strong>Inn ${inn}, after ${cur.ball[idx]}</strong> &middot; ${team} ${cur.cumR[idx]}/${cur.cumW[idx]}<br>`;
+  if (cur.ev[idx]) s += `${esc(cur.ev[idx])}<br>`;
+  else s += `${cur.r[idx]} run${cur.r[idx] === 1 ? "" : "s"}<br>`;
+  const d = (cur.p[j] - cur.p[j - 1]) / 10;
+  if (j !== cur.n1) s += `<span style="color:var(--ink2)">swing ${d >= 0 ? "+" : ""}${d.toFixed(1)} pts for ${cur.t1}</span><br>`;
+  return s + wins;
+}
+
+// ---- replay animation
+function togglePlay() { timer ? stop() : play(); }
+function play() {
+  const n = cur.p.length - 1;
+  if (upto >= n) upto = 0;
+  $("play").innerHTML = "&#10074;&#10074; Pause";
+  timer = setInterval(() => {
+    upto = Math.min(n, upto + 2); $("scrub").value = upto; draw();
+    if (upto >= n) stop();
+  }, 40);
+}
+function stop() { if (timer) { clearInterval(timer); timer = null; } $("play").innerHTML = "&#9654; Replay"; }
+</script>
+</body>
+</html>
