@@ -2,11 +2,15 @@
 
 A live win-probability model for the IPL, in the spirit of the win predictor shown during broadcasts, built to be **honestly evaluated**: it is trained on past seasons, tuned on 2024, and scored on the two seasons it was not trained on (2025 and 2026). **Read the "Test-set reuse" section before the results: the test seasons were scored in three versions of the pipeline, so they are a good but not a perfectly clean holdout.** The question is not "what is the accuracy" but "when the model says 70%, do teams win 70% of the time, and does that hold up on future seasons?"
 
-**[Open the match replay demo](demo/index.html)** (a single self-contained HTML file; double-click it, no server needed). Pick any of the 138 held-out matches, see the win-probability line ball by ball, wickets and sixes marked, and the three biggest turning points annotated.
+**Match replay demo:** `demo/index.html` is a single self-contained HTML file. GitHub shows it as source code, so clone or download the repo and double-click it (no server needed). Pick any of the 138 held-out matches to see the win-probability line ball by ball, with wickets and sixes marked and the three biggest turning points annotated.
 
-![Replay of PBKS v KKR, 2025-04-15: PBKS defend 111](reports/figures/replay_comeback.png)
+![Replay of PBKS v MI, 2026-05-14](reports/figures/replay_seesaw.png)
 
-*PBKS v KKR, 15 April 2025. PBKS were bowled out for 111 and the model gave them almost no chance; KKR were bowled out for 95 and PBKS won by 16 runs. The model never saw this match.*
+*PBKS v MI, 14 May 2026 (a held-out season the model was never trained on). The lead changed hands repeatedly; Tilak Varma's sixes at 17.6 and 19.4 swung it to MI, who won by 6 wickets. The dotted final step is the actual result, not a model estimate.*
+
+![Replay of PBKS v KKR, 2025-04-15](reports/figures/replay_comeback.png)
+
+*An upset, PBKS v KKR, 15 April 2025. Defending 111, PBKS were given under 10% for almost the whole chase, a fair reading of such a low total; KKR were then bowled out for 95. A calibrated model still loses matches like this: a 5% chance should come true about 1 time in 20.*
 
 ## What was built
 
@@ -121,7 +125,7 @@ By stage (log loss, test seasons):
 
 ## Biggest turning points in the test seasons
 
-Ball-level swings in the win probability of the team batting first. Balls in the first two overs of an innings are excluded (the model is not stable there), and so are **match-ending balls**: on the last ball the probability is set to the actual result (0% or 100%), so that swing is a convention, not a model estimate. (The very biggest "swing" in the data, PBKS v KKR on 2025-04-15, where the last wicket moves PBKS from about 10% to 100%, is of this kind and is flagged, not ranked. Match-ending balls are still shown, with a note, as turning points in the demo.)
+Ball-level swings in the win probability of the team batting first. Balls in the first two overs of an innings are excluded (the model is not stable there), and so are **match-ending balls**: on the last ball the probability is set to the actual result (0% or 100%), so that swing is a convention, not a model estimate. (The very biggest "swing" in the data, PBKS v KKR on 2025-04-15, where the last wicket moves PBKS from about 10% to 100%, is of this kind, so it is not ranked. Match-ending balls are also excluded from the turning points in the charts and the demo, where the final step is drawn dotted.)
 
 | Match | Ball | What happened | Win prob. (team batting first) |
 |---|---|---|---|

@@ -41,7 +41,8 @@ def main():
         ser["terminal"] = False
         ser.iloc[-1, ser.columns.get_loc("terminal")] = True   # last ball: p_after is the real result, not a model estimate
         t1, t2 = mr.team1, mr.team2
-        picks = pick_turning_points(ser, top=3)
+        # the match-ending ball's p_after is the actual result, not a model estimate, so it can't be a turning point
+        picks = pick_turning_points(ser[~ser.terminal], top=3)
         for rank, ix in enumerate(picks, 1):
             r = ser.loc[ix]
             tp_rows.append({"match_id": mid, "season": int(mr.season), "date": str(mr.date.date()), "match": f"{ABBR[t1]} v {ABBR[t2]}",
@@ -127,26 +128,31 @@ def plot_match(mr, ser, P, n1, picks, path):
     x = np.arange(len(P))
     t1, t2 = ABBR[mr.team1], ABBR[mr.team2]
     ax.axhline(0.5, color=GRID, lw=1, zorder=1)
-    ax.fill_between(x, 0.5, P, where=P >= 0.5, color=BLUE, alpha=0.16, lw=0, interpolate=True)
-    ax.fill_between(x, 0.5, P, where=P <= 0.5, color=ORANGE, alpha=0.16, lw=0, interpolate=True)
+    xf, Pf = x[:-1], P[:-1]   # shade model estimates only, not the final step to the result
+    ax.fill_between(xf, 0.5, Pf, where=Pf >= 0.5, color=BLUE, alpha=0.16, lw=0, interpolate=True)
+    ax.fill_between(xf, 0.5, Pf, where=Pf <= 0.5, color=ORANGE, alpha=0.16, lw=0, interpolate=True)
     ax.plot(x[:n1], P[:n1], color=INK, lw=1.8, zorder=3)
-    ax.plot(x[n1:], P[n1:], color=INK, lw=1.8, zorder=3)
+    ax.plot(x[n1:-1], P[n1:-1], color=INK, lw=1.8, zorder=3)
+    # last step jumps to the actual result (0% or 100%): draw it as a convention, not a model move
+    ax.plot(x[-2:], P[-2:], color=MUTED, lw=1, ls=":", zorder=3, label="Final result (not a model estimate)")
     ax.plot(x[n1 - 1:n1 + 1], P[n1 - 1:n1 + 1], color=INK, lw=1, ls=":", zorder=3)
     ax.axvline(n1, color=MUTED, lw=1, ls="--")
     ax.text(n1 / 2, 1.02, f"Innings 1: {t1} batting", ha="center", color=MUTED, fontsize=10)
     ax.text(n1 + (len(P) - n1) / 2, 1.02, f"Innings 2: {t2} chasing", ha="center", color=MUTED, fontsize=10)
+    Pm = P.copy(); Pm[-1] = P[-2]   # markers on the match-ending ball sit on the last model estimate, not the result
     w = np.where(ser.ball_wkts.values > 0)[0] + 1
-    ax.scatter(w, P[w], s=34, color="#e34948", edgecolor="white", linewidth=1, zorder=5, label="Wicket")
+    ax.scatter(w, Pm[w], s=34, color="#e34948", edgecolor="white", linewidth=1, zorder=5, label="Wicket")
     six = np.where(ser.event_type.values == "six")[0] + 1
-    ax.scatter(six, P[six], s=26, color="#1baf7a", edgecolor="white", linewidth=1, zorder=5, marker="D", label="Six")
+    ax.scatter(six, Pm[six], s=26, color="#1baf7a", edgecolor="white", linewidth=1, zorder=5, marker="D", label="Six")
     for n, ix in enumerate(picks, 1):
         j = ser.index.get_loc(ix) + 1
         ax.scatter([j], [P[j]], s=200, facecolor="white", edgecolor=INK, linewidth=1.4, zorder=6)
         ax.text(j, P[j], str(n), ha="center", va="center", fontsize=9, fontweight="bold", zorder=7)
     ax.set_ylim(0, 1)
     ax.set_xlim(0, len(P) - 1)
-    tk = [(0, "0"), (36, "6"), (90, "15"), (n1, "20 ov | 0"), (n1 + 36, "6"), (n1 + 90, "15"), (len(P) - 1, "end")]
-    tk = [(x_, l_) for x_, l_ in tk if x_ < len(P)]
+    # over ticks per innings, dropped when they would crowd the innings break or the end
+    tk = [(b, f"{o} ov") for b, o in ((0, 0), (36, 6), (90, 15)) if b <= n1 - 12]
+    tk += [(n1 + b, f"{o} ov") for b, o in ((0, 0), (36, 6), (90, 15)) if n1 + b <= len(P) - 12]
     ax.set_xticks([a for a, _ in tk])
     ax.set_xticklabels([b for _, b in tk], color=MUTED)
     ax.set_yticks([0, .25, .5, .75, 1])

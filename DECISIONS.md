@@ -273,7 +273,7 @@ By season the average first innings is 183 (2023), 190 (2024), 192 (2025), 196 (
 * **First 12 balls of each innings excluded.** Even after the fix in decision 13 the model moves by up to ~8 points between consecutive balls in the opening overs at times (mean maximum step 7.9 points in the first 12 balls of a test match). Calling those "turning points" would be calling noise a story. A coarse rule, openly stated.
 * **Top 3 per match**, greedily, skipping balls within 4 of one already chosen so that "six, six, six" is one story, and with a floor of 4 points.
 * **Labels** come from the ball itself: wicket (who, how, bowler), six, four, no-ball/wide, or runs. Over-level swings (sum of ball swings in an over) are reported separately.
-* **The last ball is a convention.** The final ball's swing runs to the true result (0 or 100%), so it is partly mechanical. Match-ending balls are excluded from the biggest-swings ranking and flagged in the demo (see section 17).
+* **The last ball is a convention.** The final ball's swing runs to the true result (0 or 100%), so it is partly mechanical. Match-ending balls are excluded from the biggest-swings ranking and from the turning points in the charts and the demo, where the final step is drawn dotted (see section 17).
 
 **Findings on test** [`test_biggest_swings.csv`, `swing_event_mix.csv`]. Wickets are 5.3% of balls but 56.5% of the 200 biggest swings; sixes are 8.5% of balls and 29%; fours 13% of balls but 6%. Mean absolute swing by event: wicket 6.0 points, six 4.7, four 2.8, dot 1.3, other runs 0.4. The very biggest are in the final overs of tight chases (e.g. KKR v LSG 2026-04-09, where a last-over six moved KKR from 94% to 5%).
 
@@ -310,7 +310,7 @@ By season the average first innings is 183 (2023), 190 (2024), 192 (2025), 196 (
 * Ties and no-results are excluded, so the test set omits the closest finishes.
 * Innings-1 calibration is poor (ECE 0.155 LR, 0.166 GBM, 0.132 GBM + Platt; AUC about 0.70; log loss 0.673 vs 0.684 prior).
 * Ball labels follow Cricsheet: 15.1 is the first ball of the 16th over.
-* Match-ending balls: the final ball's probability is set to the real result, so those swings are a convention. They are excluded from the biggest-swings ranking (the wicket share is 56.5% of the top 200 with them, 57% without) and flagged in the demo.
+* Match-ending balls: the final ball's probability is set to the real result, so those swings are a convention. They are excluded from the biggest-swings ranking (the wicket share is 56.5% of the top 200 with them, 57% without) and from the turning points in the charts and the demo; the final step is drawn dotted.
 * Did not use player identity, weather, dew, pitch reports or live odds. They are the obvious next step and likely matter most in the first innings.
 * Did not refit on 2024 before testing. It would give the model a season closer to the test years but would remove the clean validation season used for calibration.
 * XGBoost was installed during setup but not used; LightGBM was enough.
