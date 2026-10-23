@@ -299,13 +299,18 @@ By season the average first innings is 183 (2023), 190 (2024), 192 (2025), 196 (
 
 **Result** [`posthoc_era_metrics.csv`], test seasons: LR with relative features 0.5241 (vs 0.5405), + Platt 0.5137; GBM with relative features 0.5323 (vs 0.5463), + Platt 0.5219. The gain is concentrated in the chase (innings-2 log loss 0.368 vs 0.397 for LR).
 
-**Why this is NOT in the headline.** The backtests did not support it before the test (decision 8: kept in 3 of 4 folds in the chase but average gain 0.0008 < 0.001), and I proposed it *after* seeing test results, so it has been tuned on the data it is scored on. On the pre-test backtests it is a wash for LR (0.5374 vs 0.5364). I report it as a lead for the next version, not a result.
+**Why this is NOT in the headline, and a correction.** The backtests did not support it before the test (decision 8: kept in 3 of 4 folds in the chase but average gain 0.0008 < 0.001), and I proposed it *after* seeing test results. On the pre-test backtests it is a wash for LR (0.5374 vs 0.5364). **Correction after an independent audit:** the headline is not fully independent of this idea either. The post-hoc script's output was produced before I changed the run-rate prior from a constant to the recent league scoring rate (decision 13, fix 2), and that change injects the same "relative to the league level" information into the headline `crr`/`proj_score` features. So both the headline and this experiment were influenced by test exposure; I report this one as a lead for the next version.
 
 ---
 
 ## 17. Things I did and did not do
 
-* Did not tune anything on the test seasons. `final_test.py` is the only script that loads them for scoring, and its configuration (features, hyper-parameters, calibrator candidates) was fixed beforehand. The things that changed after seeing test numbers are listed in decisions 13 and 16, each with the reason.
+* **Test-set reuse, stated plainly.** The test seasons were scored in three versions of the pipeline (LR 0.5518 to 0.5465 to 0.5405; GBM 0.5521 to 0.5488 to 0.5463). Pre-declared: raw GBM as headline, LR as baseline, calibrators as candidates (pre-test backtests said calibration hurts: raw 0.531, Platt 0.553, isotonic 0.585). Chosen after test exposure: the run-rate prior, adopting Platt, and using GBM + Platt in the demo. 2026 was scored together with 2025 every time, so there is no clean holdout; a fresh season (2027) is needed to confirm the Platt result. Per season, the Platt gain over raw GBM is -0.003 on 2025 (95% interval -0.023 to +0.021) and -0.029 on 2026 (-0.044 to -0.014), so it is driven by 2026. Like for like, GBM + Platt minus LR + Platt is -0.0001 to +0.023, so LR + Platt is at least as good. The demo keeps GBM + Platt because it was the intended recipe and was chosen before this comparison; it is a presentation, not an evaluation claim.
+* Tree counts were tuned on backtest folds that include 2024, so 2024 is slightly less than a clean calibration set.
+* Ties and no-results are excluded, so the test set omits the closest finishes.
+* Innings-1 calibration is poor (ECE 0.155 LR, 0.166 GBM, 0.132 GBM + Platt; AUC about 0.70; log loss 0.673 vs 0.684 prior).
+* Ball labels follow Cricsheet: 15.1 is the first ball of the 16th over.
+* Match-ending balls: the final ball's probability is set to the real result, so those swings are a convention. They are excluded from the biggest-swings ranking (the wicket share is 56.5% of the top 200 with them, 57% without) and flagged in the demo.
 * Did not use player identity, weather, dew, pitch reports or live odds. They are the obvious next step and likely matter most in the first innings.
 * Did not refit on 2024 before testing. It would give the model a season closer to the test years but would remove the clean validation season used for calibration.
 * XGBoost was installed during setup but not used; LightGBM was enough.

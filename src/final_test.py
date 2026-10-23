@@ -83,7 +83,7 @@ def main():
     pd.DataFrame(rows).to_csv(RESULTS / "test_metrics_by_season.csv", index=False)
 
     # match-level bootstrap CIs and paired differences vs the baselines
-    headline = list(dict.fromkeys(["naive prior", "logistic regression", "GBM", "GBM (monotone)", "GBM + Platt", "GBM + isotonic", chosen]))
+    headline = list(dict.fromkeys(["naive prior", "logistic regression", "logistic regression + Platt", "GBM", "GBM (monotone)", "GBM + Platt", "GBM + isotonic", chosen]))
     ci, diff_lr = bootstrap_ci(out, headline, n_boot=500, baseline_col="logistic regression")
     _, diff_naive = bootstrap_ci(out, headline, n_boot=500, baseline_col="naive prior")
     rows = []
@@ -95,6 +95,18 @@ def main():
             r[f"{m}_vs_naive_lo"], r[f"{m}_vs_naive_hi"] = diff_naive[k][m]
         rows.append(r)
     pd.DataFrame(rows).to_csv(RESULTS / "test_bootstrap_ci.csv", index=False)
+
+    # like-for-like: GBM + Platt vs LR + Platt, and the Platt gain on each test season separately
+    rows = []
+    _, d = bootstrap_ci(out, ["GBM + Platt"], n_boot=1000, baseline_col="logistic regression + Platt", metrics=("log_loss",))
+    rng_cols = out[["match_id", "bat_team_wins", "GBM + Platt", "logistic regression + Platt"]]
+    rows.append({"scope": "GBM+Platt minus LR+Platt, pooled", "log_loss_lo": d["GBM + Platt"]["log_loss"][0], "log_loss_hi": d["GBM + Platt"]["log_loss"][1]})
+    for sname, sub in [("2025", out[out.season == 2025]), ("2026", out[out.season == 2026]), ("pooled", out)]:
+        _, dd = bootstrap_ci(sub.assign(base=sub["GBM"]), ["GBM + Platt"], n_boot=1000, baseline_col="GBM", metrics=("log_loss",))
+        rows.append({"scope": f"Platt gain on GBM, {sname}", "point": float(
+            all_metrics(sub.bat_team_wins.values, sub["GBM + Platt"].values)["log_loss"] - all_metrics(sub.bat_team_wins.values, sub["GBM"].values)["log_loss"]),
+            "log_loss_lo": dd["GBM + Platt"]["log_loss"][0], "log_loss_hi": dd["GBM + Platt"]["log_loss"][1]})
+    pd.DataFrame(rows).to_csv(RESULTS / "test_platt_comparisons.csv", index=False)
 
     # reliability tables
     rel = []

@@ -38,6 +38,8 @@ def main():
         mr = matches.loc[mid]
         ser, P, n1 = build_match_series(g, None, mr)
         ser["match_id"] = mid
+        ser["terminal"] = False
+        ser.iloc[-1, ser.columns.get_loc("terminal")] = True   # last ball: p_after is the real result, not a model estimate
         t1, t2 = mr.team1, mr.team2
         picks = pick_turning_points(ser, top=3)
         for rank, ix in enumerate(picks, 1):
@@ -45,7 +47,7 @@ def main():
             tp_rows.append({"match_id": mid, "season": int(mr.season), "date": str(mr.date.date()), "match": f"{ABBR[t1]} v {ABBR[t2]}",
                             "rank": rank, "innings": int(r.innings), "ball": r.ball, "event_type": r.event_type, "event": r.event_text,
                             "p_before_t1": r.p_before, "p_after_t1": r.p_after, "swing_t1": r.swing,
-                            "gain": swing_label(r.swing, t1, t2), "state": f"{int(r.runs)}/{int(r.wickets)}"})
+                            "terminal": bool(r.terminal), "gain": swing_label(r.swing, t1, t2), "state": f"{int(r.runs)}/{int(r.wickets)}"})
         o = over_swings(ser)
         o["match"] = f"{ABBR[t1]} v {ABBR[t2]}"; o["season"] = int(mr.season); o["date"] = str(mr.date.date())
         over_rows.append(o)
@@ -67,7 +69,7 @@ def main():
             "n1": n1, "p": [int(round(x * 1000)) for x in P],
             "r": [int(x) for x in ser.ball_runs], "w": [int(x) for x in ser.ball_wkts],
             "ball": list(ser.ball), "ev": evs,
-            "tp": [{"i": int(ser.index.get_loc(ix)), "text": ser.loc[ix, "event_text"], "swing": round(float(ser.loc[ix, "swing"]), 3),
+            "tp": [{"i": int(ser.index.get_loc(ix)), "text": ser.loc[ix, "event_text"] + (" (match-ending ball: result counted as 100%/0%)" if ser.loc[ix, "terminal"] else ""), "swing": round(float(ser.loc[ix, "swing"]), 3),
                     "gain": swing_label(ser.loc[ix, "swing"], t1, t2), "ball": f'{int(ser.loc[ix, "innings"])}st/nd {ser.loc[ix, "ball"]}'.replace("1st/nd", "Inn 1,").replace("2st/nd", "Inn 2,")}
                    for ix in picks],
         })
@@ -75,7 +77,7 @@ def main():
     tp = pd.DataFrame(tp_rows)
     tp.to_csv(RESULTS / "test_turning_points.csv", index=False)
     S = pd.concat(all_ser).dropna(subset=["swing"])
-    S = S[S.balls_bowled >= MIN_BALLS]
+    S = S[(S.balls_bowled >= MIN_BALLS) & ~S.terminal]   # terminal-ball swings use the actual result, not a model estimate
     S["abs_swing"] = S.swing.abs()
     top = S.sort_values("abs_swing", ascending=False).head(25)
     cols = ["season", "date", "match", "innings", "ball", "runs", "wickets", "event_type", "event_text", "p_before", "p_after", "swing"]

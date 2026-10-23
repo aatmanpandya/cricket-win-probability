@@ -1,20 +1,20 @@
                                              model      n  log_loss   brier     auc     ece
-0                logistic regression  [frozen run]  31611    0.5465  0.1873  0.7913  0.0429
-1                                GBM  [frozen run]  31611    0.5488  0.1878  0.7939  0.0537
-2                        GBM + Platt  [frozen run]  31611    0.5296  0.1795  0.8134  0.0526
-3        logistic regression + Platt  [frozen run]  31611    0.5216  0.1762  0.8185  0.0453
-4                              LR (relative feats)  31611    0.5262  0.1788  0.8225  0.0763
-5                      LR (relative feats) + Platt  31611    0.5157  0.1741  0.8234  0.0483
-6          GBM (relative feats, boost from rel-LR)  31611    0.5342  0.1820  0.8161  0.0801
-7  GBM (relative feats, boost from rel-LR) + Platt  31611    0.5227  0.1772  0.8175  0.0516
+0                logistic regression  [frozen run]  31611    0.5405  0.1850  0.7974  0.0433
+1                                GBM  [frozen run]  31611    0.5463  0.1867  0.7979  0.0557
+2                        GBM + Platt  [frozen run]  31611    0.5303  0.1794  0.8147  0.0569
+3        logistic regression + Platt  [frozen run]  31611    0.5193  0.1753  0.8203  0.0459
+4                              LR (relative feats)  31611    0.5241  0.1779  0.8263  0.0808
+5                      LR (relative feats) + Platt  31611    0.5137  0.1733  0.8250  0.0489
+6          GBM (relative feats, boost from rel-LR)  31611    0.5323  0.1812  0.8184  0.0810
+7  GBM (relative feats, boost from rel-LR) + Platt  31611    0.5219  0.1767  0.8190  0.0532
 season                                            2025          2026       
 innings                                              1      2      1      2
 actual                                           0.488  0.487  0.359  0.633
-LR (relative feats)                              0.568  0.526  0.579  0.574
-LR (relative feats) + Platt                      0.533  0.504  0.548  0.560
-GBM (relative feats, boost from rel-LR)          0.574  0.538  0.583  0.579
-GBM (relative feats, boost from rel-LR) + Platt  0.536  0.510  0.549  0.558
+LR (relative feats)                              0.567  0.535  0.578  0.586
+LR (relative feats) + Platt                      0.533  0.503  0.547  0.562
+GBM (relative feats, boost from rel-LR)          0.573  0.539  0.586  0.580
+GBM (relative feats, boost from rel-LR) + Platt  0.537  0.510  0.554  0.558
 fold                 2021    2022    2023    2024     all
 model                                                    
-LR                 0.5349  0.5211  0.5925  0.4985  0.5370
-LR relative feats  0.5357  0.5316  0.5908  0.4931  0.5382
+LR                 0.5350  0.5223  0.5922  0.4953  0.5364
+LR relative feats  0.5352  0.5299  0.5898  0.4932  0.5374
