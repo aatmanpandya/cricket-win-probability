@@ -225,7 +225,7 @@ By season the average first innings is 183 (2023), 190 (2024), 192 (2025), 196 (
 
 **Pre-test evidence** [`val_calibration.csv`]. Nested backtest: train before season y-1, fit Platt or isotonic on y-1, score on y, for y = 2022, 2023, 2024. Log loss pooled: raw 0.5307, Platt 0.5532, isotonic 0.5850. **Calibration hurt in every fold.** With one year of calibration data, the calibrator learns that year's quirks (which do not repeat). Isotonic is worse than Platt as expected: it has far more freedom and 70 matches is little to fit it on.
 
-**So the pre-declared headline model was the uncalibrated GBM.** Platt and isotonic variants (fitted on 2024, per innings) were still computed and are reported, because the project brief asks for before-and-after.
+**So the pre-declared headline model was the uncalibrated GBM.** Platt and isotonic variants (fitted on 2024, per innings) were still computed and are reported, to show before-and-after.
 
 **What the test seasons showed** [`test_metrics_overall.csv`]:
 
@@ -246,7 +246,7 @@ By season the average first innings is 183 (2023), 190 (2024), 192 (2025), 196 (
 * **ECE barely moved overall** (0.056 to 0.057) but it moved a lot where it should: chase ECE 0.067 to 0.033, powerplay unchanged. ECE on 138 matches has intervals of roughly [0.04, 0.09], so differences of 0.01 are noise.
 * **First-innings probabilities are not much better than the prior** (log loss 0.673-0.690 vs 0.684; GBM before calibration is *worse* than the prior). Honest reading: a first-innings score only means something relative to the era, and the 2025-26 era is far from what the training data saw.
 
-**How I treat this in writing.** The pre-registered headline was raw GBM, and the calibrated model beat it on test, against my pre-test evidence. I report both side by side and call the calibration result a *finding I did not predict*, not a tuned success. The demo uses GBM + Platt (it is the spec's recipe: GBM fitted on the training seasons, calibrated on the validation season).
+**How I treat this in writing.** The pre-registered headline was raw GBM, and the calibrated model beat it on test, against my pre-test evidence. I report both side by side and call the calibration result a *finding I did not predict*, not a tuned success. The demo uses GBM + Platt (it is the intended recipe: GBM fitted on the training seasons, calibrated on the validation season).
 
 ---
 
@@ -273,9 +273,9 @@ By season the average first innings is 183 (2023), 190 (2024), 192 (2025), 196 (
 * **First 12 balls of each innings excluded.** Even after the fix in decision 13 the model moves by up to ~8 points between consecutive balls in the opening overs at times (mean maximum step 7.9 points in the first 12 balls of a test match). Calling those "turning points" would be calling noise a story. A coarse rule, openly stated.
 * **Top 3 per match**, greedily, skipping balls within 4 of one already chosen so that "six, six, six" is one story, and with a floor of 4 points.
 * **Labels** come from the ball itself: wicket (who, how, bowler), six, four, no-ball/wide, or runs. Over-level swings (sum of ball swings in an over) are reported separately.
-* **The last ball counts.** The final ball's swing runs to the true result (0 or 100%). A model saying 70% before a last-ball finish and then 0% is the "biggest swing" mathematically; it is a real turning point but partly mechanical. I keep them and say so.
+* **The last ball is a convention.** The final ball's swing runs to the true result (0 or 100%), so it is partly mechanical. Match-ending balls are excluded from the biggest-swings ranking and flagged in the demo (see section 17).
 
-**Findings on test** [`test_biggest_swings.csv`, `swing_event_mix.csv`]. Wickets are 5.3% of balls but 56.5% of the 200 biggest swings; sixes are 8.5% of balls and 29%; fours 13% of balls but 6%. Mean absolute swing by event: wicket 6.0 points, six 4.7, four 2.8, dot 1.3, other runs 0.4. The very biggest are in the final overs of tight chases (PBKS v KKR 2025-04-15, where the last KKR wicket moved PBKS from 10% to 100%).
+**Findings on test** [`test_biggest_swings.csv`, `swing_event_mix.csv`]. Wickets are 5.3% of balls but 56.5% of the 200 biggest swings; sixes are 8.5% of balls and 29%; fours 13% of balls but 6%. Mean absolute swing by event: wicket 6.0 points, six 4.7, four 2.8, dot 1.3, other runs 0.4. The very biggest are in the final overs of tight chases (e.g. KKR v LSG 2026-04-09, where a last-over six moved KKR from 94% to 5%).
 
 **Replay PNGs.** Three matches picked by rules, not by hand: the biggest comeback (lowest win probability of the eventual winner after over 2: PBKS v KKR, 2025), the biggest single-ball swing after that (KKR v LSG, 2026), and the most lead changes (PBKS v MI, 2026).
 
