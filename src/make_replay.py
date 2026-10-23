@@ -24,6 +24,16 @@ from turning_points import MIN_BALLS, build_match_series, over_swings, pick_turn
 
 REPLAY_MODEL = "GBM + Platt"     # GBM fitted on <=2023, Platt recalibration fitted on 2024
 BLUE, ORANGE, GRID, INK, MUTED = "#2a78d6", "#eb6834", "#d9d8d3", "#0b0b0b", "#52514e"
+# Team colours for the win-probability fill (each side's shading is its own team colour)
+TEAM_COLOR = {"MI": "#1f62c4", "PBKS": "#d6313a", "CSK": "#e0a800", "RCB": "#b4141d", "KKR": "#5b2d8e",
+              "DC": "#1f57b8", "RR": "#e0197d", "SRH": "#f0661d", "GT": "#1c2c4c", "LSG": "#1b9dc7"}
+
+
+def side_colors(t1, t2):
+    """Fill colours for (team batting first, team chasing); fall back to blue/orange if the two clash."""
+    c1, c2 = TEAM_COLOR.get(t1, BLUE), TEAM_COLOR.get(t2, ORANGE)
+    rgb = lambda c: np.array([int(c[i:i + 2], 16) for i in (1, 3, 5)])
+    return (c1, c2) if np.abs(rgb(c1) - rgb(c2)).sum() > 160 else (BLUE, ORANGE)
 
 
 def main():
@@ -129,8 +139,9 @@ def plot_match(mr, ser, P, n1, picks, path):
     t1, t2 = ABBR[mr.team1], ABBR[mr.team2]
     ax.axhline(0.5, color=GRID, lw=1, zorder=1)
     xf, Pf = x[:-1], P[:-1]   # shade model estimates only, not the final step to the result
-    ax.fill_between(xf, 0.5, Pf, where=Pf >= 0.5, color=BLUE, alpha=0.16, lw=0, interpolate=True)
-    ax.fill_between(xf, 0.5, Pf, where=Pf <= 0.5, color=ORANGE, alpha=0.16, lw=0, interpolate=True)
+    c1, c2 = side_colors(t1, t2)
+    ax.fill_between(xf, 0.5, Pf, where=Pf >= 0.5, color=c1, alpha=0.18, lw=0, interpolate=True, label=f"{t1} ahead")
+    ax.fill_between(xf, 0.5, Pf, where=Pf <= 0.5, color=c2, alpha=0.18, lw=0, interpolate=True, label=f"{t2} ahead")
     ax.plot(x[:n1], P[:n1], color=INK, lw=1.8, zorder=3)
     ax.plot(x[n1:-1], P[n1:-1], color=INK, lw=1.8, zorder=3)
     # last step jumps to the actual result (0% or 100%): draw it as a convention, not a model move
@@ -146,8 +157,8 @@ def plot_match(mr, ser, P, n1, picks, path):
     ax.scatter(six, Pm[six], s=26, color="#1baf7a", edgecolor="white", linewidth=1, zorder=5, marker="D", label="Six")
     for n, ix in enumerate(picks, 1):
         j = ser.index.get_loc(ix) + 1
-        ax.scatter([j], [P[j]], s=200, facecolor="white", edgecolor=INK, linewidth=1.4, zorder=6)
-        ax.text(j, P[j], str(n), ha="center", va="center", fontsize=9, fontweight="bold", zorder=7)
+        ax.scatter([j], [P[j]], s=200, facecolor="white", edgecolor=INK, linewidth=1.4, zorder=6, clip_on=False)
+        ax.text(j, P[j], str(n), ha="center", va="center", fontsize=9, fontweight="bold", zorder=7, clip_on=False)
     ax.set_ylim(0, 1)
     ax.set_xlim(0, len(P) - 1)
     # over ticks per innings, dropped when they would crowd the innings break or the end
