@@ -8,7 +8,7 @@
   :root {
     color-scheme: light;
     --bg: #f6f5f1; --surface: #fcfcfb; --ink: #0b0b0b; --ink2: #52514e; --muted: #7c7b76;
-    --grid: #dddcd6; --t1: #2a78d6; --t2: #eb6834; --wkt: #e34948; --six: #1baf7a; --line: #0b0b0b;
+    --grid: #dddcd6; --t1: #2a78d6; --t2: #eb6834; --team1: var(--t1); --team2: var(--t2); --wkt: #e34948; --six: #1baf7a; --line: #0b0b0b;
     --border: #e2e1db; --accent-bg: #eef3fb;
   }
   @media (prefers-color-scheme: dark) {
@@ -94,8 +94,8 @@
 
   <div class="card">
     <div class="legend" id="legend">
-      <span><span class="dot" style="background:var(--t1)"></span><span id="l1"></span> win probability above 50%</span>
-      <span><span class="dot" style="background:var(--t2)"></span><span id="l2"></span> win probability below 50%</span>
+      <span><span class="dot" style="background:var(--team1)"></span><span id="l1"></span> ahead</span>
+      <span><span class="dot" style="background:var(--team2)"></span><span id="l2"></span> ahead</span>
       <label><input type="checkbox" id="cw" checked> <svg width="12" height="12"><circle cx="6" cy="6" r="5" fill="var(--wkt)"/></svg> Wickets</label>
       <label><input type="checkbox" id="c6" checked> <svg width="12" height="12"><rect x="2" y="2" width="8" height="8" fill="var(--six)" transform="rotate(45 6 6)"/></svg> Sixes</label>
       <label><input type="checkbox" id="c4"> <svg width="12" height="12"><circle cx="6" cy="6" r="3" fill="var(--ink2)"/></svg> Fours</label>
@@ -170,8 +170,9 @@ function el(name, attrs, parent) {
   $("theme").onclick = () => {
     const r = document.documentElement, dark = getComputedStyle(r).colorScheme === "dark";
     r.setAttribute("data-theme", dark ? "light" : "dark");
-    draw();
+    teamColors(); draw();
   };
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { teamColors(); draw(); });
   load(best);
 })();
 
@@ -180,9 +181,26 @@ function step(d) {
   $("match").value = i; load(i);
 }
 
+function teamColors() {
+  // Team colours [light theme, dark theme]; same light values as the README charts
+  const TEAM_COLOR = {MI: ["#1f62c4", "#4a8ae8"], PBKS: ["#d6313a", "#ec5a62"], CSK: ["#e0a800", "#f2c230"], RCB: ["#b4141d", "#e0454c"],
+    KKR: ["#5b2d8e", "#9b6bd6"], DC: ["#1f57b8", "#4d84e0"], RR: ["#e0197d", "#f0559c"], SRH: ["#f0661d", "#f58a4e"],
+    GT: ["#1c2c4c", "#7f9bd0"], LSG: ["#1b9dc7", "#4cc0e6"]};
+  const r = document.documentElement;
+  if (!cur) return;
+  const dark = getComputedStyle(r).colorScheme === "dark" ? 1 : 0;
+  const c1 = (TEAM_COLOR[cur.t1] || [])[dark], c2 = (TEAM_COLOR[cur.t2] || [])[dark];
+  const rgb = c => [1, 3, 5].map(k => parseInt(c.slice(k, k + 2), 16));
+  const far = c1 && c2 && rgb(c1).reduce((s, v, k) => s + Math.abs(v - rgb(c2)[k]), 0) > 160;
+  // Teams with clashing colours (e.g. MI v DC, both blue) fall back to the generic blue/orange
+  if (far) { r.style.setProperty("--team1", c1); r.style.setProperty("--team2", c2); }
+  else { r.style.removeProperty("--team1"); r.style.removeProperty("--team2"); }
+}
+
 function load(i) {
   stop();
   cur = DATA[i];
+  teamColors();
   cur.cumR = []; cur.cumW = [];  // score after ball j (within its innings)
   let r = 0, w = 0;
   for (let j = 0; j < cur.r.length; j++) {
@@ -192,7 +210,7 @@ function load(i) {
   }
   upto = cur.p.length - 1;
   $("scrub").max = upto; $("scrub").value = upto;
-  $("teams").innerHTML = `<span class="dot" style="background:var(--t1)"></span>${cur.t1}<span class="s">${cur.s1}</span> &nbsp;v&nbsp; <span class="dot" style="background:var(--t2)"></span>${cur.t2}<span class="s">${cur.s2}</span>`;
+  $("teams").innerHTML = `<span class="dot" style="background:var(--team1)"></span>${cur.t1}<span class="s">${cur.s1}</span> &nbsp;v&nbsp; <span class="dot" style="background:var(--team2)"></span>${cur.t2}<span class="s">${cur.s2}</span>`;
   $("result").textContent = cur.result;
   $("meta").innerHTML = `${cur.date} &middot; ${cur.venue}<br>${cur.toss}`;
   $("l1").textContent = cur.t1; $("l2").textContent = cur.t2;
@@ -256,8 +274,8 @@ function draw() {
   const areaPath = `M${X(0)},${mid} L` + pts.join(" L") + ` L${X(n)},${mid} Z`;
   const cT = el("clipPath", {id: cid + "t"}, defs); el("rect", {x: 0, y: 0, width: W, height: mid}, cT);
   const cB = el("clipPath", {id: cid + "b"}, defs); el("rect", {x: 0, y: mid, width: W, height: H - mid}, cB);
-  el("path", {d: areaPath, fill: css.getPropertyValue("--t1"), "fill-opacity": .2, "clip-path": `url(#${cid}t)`}, g);
-  el("path", {d: areaPath, fill: css.getPropertyValue("--t2"), "fill-opacity": .2, "clip-path": `url(#${cid}b)`}, g);
+  el("path", {d: areaPath, fill: css.getPropertyValue("--team1"), "fill-opacity": .2, "clip-path": `url(#${cid}t)`}, g);
+  el("path", {d: areaPath, fill: css.getPropertyValue("--team2"), "fill-opacity": .2, "clip-path": `url(#${cid}b)`}, g);
   // lines (innings 2 separate from innings 1; dotted hand-over)
   const line = (a, b, dash) => el("polyline", {points: pts.slice(a, b + 1).join(" "), fill: "none", stroke: css.getPropertyValue("--line"), "stroke-width": 2, "stroke-linejoin": "round", "stroke-dasharray": dash || ""}, g);
   line(0, n1 - 1); line(n1 - 1, n1, "2 3"); line(n1, n);
@@ -320,7 +338,7 @@ function posLabel(j) {
 
 function tipHtml(j) {
   const p1 = cur.p[j], p2 = 1000 - p1;
-  const wins = `<span class="dot" style="background:var(--t1)"></span>${cur.t1} ${pct(p1)} &nbsp; <span class="dot" style="background:var(--t2)"></span>${cur.t2} ${pct(p2)}`;
+  const wins = `<span class="dot" style="background:var(--team1)"></span>${cur.t1} ${pct(p1)} &nbsp; <span class="dot" style="background:var(--team2)"></span>${cur.t2} ${pct(p2)}`;
   if (j === 0) return `<strong>Start of match</strong><br>${wins}`;
   if (j === cur.p.length - 1) return `<strong>Result</strong><br>${cur.result}`;
   const idx = j - 1, inn = idx < cur.n1 ? 1 : 2;
